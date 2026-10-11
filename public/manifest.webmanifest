@@ -1,0 +1,14 @@
+{
+  "name": "RitmoPix • Cobranças mensais",
+  "short_name": "RitmoPix",
+  "description": "Controle mensal de clientes e cobranças por Pix e WhatsApp.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "icons": [
+    { "src": "/ritmopix-logo.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }
+  ]
+}

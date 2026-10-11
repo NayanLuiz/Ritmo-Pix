@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RitmoPix • Cobranças mensais</title>
+  <meta name="theme-color" content="#030712">
+  <meta name="description" content="RitmoPix: controle mensal de clientes e cobranças por Pix e WhatsApp, com histórico de pagamentos.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="/ritmopix-logo.png">
+  <link rel="apple-touch-icon" href="/ritmopix-logo.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950 relative overflow-x-hidden">
+  <div id="app" class="flex-1 flex flex-col">
+    <div class="flex-1 flex items-center justify-center"><div class="spinner" role="status" aria-label="Carregando"></div></div>
+  </div>
+  <div id="toasts" class="fixed bottom-4 inset-x-4 sm:left-auto sm:right-4 z-50 flex flex-col items-center sm:items-end gap-2 pointer-events-none" aria-live="polite"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
