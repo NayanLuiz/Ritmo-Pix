@@ -3,8 +3,8 @@ import { clear, h, icon } from './dom.js';
 const input =
   'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition';
 
-export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRecovery = false }) {
-  let mode = isRecovery ? 'new-password' : 'login'; // 'login' | 'forgot' | 'new-password'
+export function renderLogin({ onSubmit, onRegister, onResetPassword, onSetNewPassword, isRecovery = false }) {
+  let mode = isRecovery ? 'new-password' : 'login'; // 'login' | 'register' | 'forgot' | 'new-password'
 
   const container = h('div', { class: 'w-full' });
   const formBox = h('div', { class: 'space-y-4' });
@@ -33,6 +33,24 @@ export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRec
           },
         },
         'Esqueceu a senha?'
+      );
+
+      const registerLink = h(
+        'div',
+        { class: 'text-center pt-2 border-t border-slate-800/80 mt-4' },
+        h('span', { class: 'text-xs text-slate-400' }, 'Não tem uma conta? '),
+        h(
+          'button',
+          {
+            type: 'button',
+            class: 'text-xs font-bold text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2',
+            onclick: () => {
+              mode = 'register';
+              renderView();
+            },
+          },
+          'Criar conta'
+        )
       );
 
       const form = h(
@@ -64,7 +82,77 @@ export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRec
           password
         ),
         error,
-        button
+        button,
+        registerLink
+      );
+      formBox.append(form);
+    } else if (mode === 'register') {
+      const email = h('input', { id: 'regEmail', type: 'email', required: true, autocomplete: 'username', placeholder: 'voce@email.com', class: input });
+      const password = h('input', { id: 'regPassword', type: 'password', required: true, minlength: '6', autocomplete: 'new-password', placeholder: 'Pelo menos 6 caracteres', class: input });
+      const confirmPassword = h('input', { id: 'regConfirmPassword', type: 'password', required: true, minlength: '6', autocomplete: 'new-password', placeholder: 'Repita sua senha', class: input });
+      const message = h('p', { id: 'regMessage', role: 'alert', class: 'text-xs font-medium min-h-4 text-rose-400' });
+      const button = h(
+        'button',
+        { type: 'submit', class: 'w-full py-3 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-500/15 active:scale-[0.98]' },
+        'Criar Minha Conta'
+      );
+
+      const backToLogin = h(
+        'div',
+        { class: 'text-center pt-2 border-t border-slate-800/80 mt-4' },
+        h('span', { class: 'text-xs text-slate-400' }, 'Já tem uma conta? '),
+        h(
+          'button',
+          {
+            type: 'button',
+            class: 'text-xs font-bold text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2',
+            onclick: () => {
+              mode = 'login';
+              renderView();
+            },
+          },
+          'Fazer login'
+        )
+      );
+
+      const form = h(
+        'form',
+        {
+          class: 'space-y-4',
+          onsubmit: async (e) => {
+            e.preventDefault();
+            message.textContent = '';
+            message.className = 'text-xs font-medium min-h-4 text-rose-400';
+            if (password.value !== confirmPassword.value) {
+              message.textContent = 'As senhas não coincidem.';
+              return;
+            }
+            button.disabled = true;
+            button.textContent = 'Criando conta…';
+            try {
+              if (onRegister) {
+                const res = await onRegister(email.value.trim(), password.value);
+                if (res?.session) {
+                  // Já logou automaticamente
+                  return;
+                }
+              }
+              message.className = 'text-xs font-medium min-h-4 text-emerald-400';
+              message.textContent = 'Conta criada com sucesso! Se necessário, confirme seu e-mail.';
+              button.textContent = 'Conta criada!';
+            } catch (err) {
+              message.textContent = err.message;
+              button.disabled = false;
+              button.textContent = 'Criar Minha Conta';
+            }
+          },
+        },
+        h('div', {}, h('label', { for: 'regEmail', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'E-mail'), email),
+        h('div', {}, h('label', { for: 'regPassword', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'Senha'), password),
+        h('div', {}, h('label', { for: 'regConfirmPassword', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'Confirmar Senha'), confirmPassword),
+        message,
+        button,
+        backToLogin
       );
       formBox.append(form);
     } else if (mode === 'forgot') {
@@ -102,7 +190,7 @@ export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRec
             button.textContent = 'Enviando…';
             try {
               if (onResetPassword) await onResetPassword(email.value.trim());
-              message.textContent = 'Link enviado! Verifique sua caixa de entrada e spam.';
+              message.textContent = 'Link enviado! Verifique seu e-mail e clique em redefinir senha.';
               message.className = 'text-xs font-medium min-h-4 text-emerald-400';
               button.textContent = 'E-mail enviado';
             } catch (err) {
@@ -124,12 +212,13 @@ export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRec
       );
       formBox.append(form);
     } else if (mode === 'new-password') {
-      const password = h('input', { id: 'newPassword', type: 'password', required: true, minlength: '6', placeholder: 'Nova senha (mínimo 6 dígitos)', class: input });
+      const password = h('input', { id: 'newPassword', type: 'password', required: true, minlength: '6', placeholder: 'Pelo menos 6 dígitos', class: input });
+      const confirmPassword = h('input', { id: 'newPasswordConfirm', type: 'password', required: true, minlength: '6', placeholder: 'Repita a nova senha', class: input });
       const error = h('p', { id: 'newPasswordError', role: 'alert', class: 'text-xs text-rose-400 font-medium min-h-4' });
       const button = h(
         'button',
         { type: 'submit', class: 'w-full py-3 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-500/15 active:scale-[0.98]' },
-        'Salvar nova senha'
+        'Salvar Nova Senha'
       );
 
       const form = h(
@@ -139,20 +228,28 @@ export function renderLogin({ onSubmit, onResetPassword, onSetNewPassword, isRec
           onsubmit: async (e) => {
             e.preventDefault();
             error.textContent = '';
+            if (password.value !== confirmPassword.value) {
+              error.textContent = 'As senhas não coincidem.';
+              return;
+            }
             button.disabled = true;
-            button.textContent = 'Salvando…';
+            button.textContent = 'Salvando senha…';
             try {
               if (onSetNewPassword) await onSetNewPassword(password.value);
             } catch (err) {
               error.textContent = err.message;
               button.disabled = false;
-              button.textContent = 'Salvar nova senha';
+              button.textContent = 'Salvar Nova Senha';
             }
           },
         },
         h('div', {},
-          h('label', { for: 'newPassword', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'Digite a nova senha'),
+          h('label', { for: 'newPassword', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'Digite sua Nova Senha'),
           password
+        ),
+        h('div', {},
+          h('label', { for: 'newPasswordConfirm', class: 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5' }, 'Confirme a Nova Senha'),
+          confirmPassword
         ),
         error,
         button

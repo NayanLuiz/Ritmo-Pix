@@ -164,10 +164,7 @@ export function createDashboard(actions) {
         { class: 'flex items-center gap-1.5 shrink-0' },
         paidRow
           ? action('receipt', 'Enviar recibo pelo WhatsApp', 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 active:scale-95', 'fa-solid fa-receipt text-xs', () => actions.onReceipt(c), h('span', { class: 'hidden sm:inline' }, 'Recibo'))
-          : [
-              action('charge', 'Abrir cobrança no WhatsApp', 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md shadow-emerald-500/15 active:scale-95', 'fa-brands fa-whatsapp text-sm', () => actions.onCharge(c), h('span', { class: 'hidden sm:inline' }, 'Cobrar')),
-              action('qrcode', 'Ver QR Code e Chave Pix', iconBtn, 'fa-solid fa-qrcode', () => actions.onQrCode(c)),
-            ],
+          : action('charge', 'Abrir cobrança no WhatsApp', 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md shadow-emerald-500/15 active:scale-95', 'fa-brands fa-whatsapp text-sm', () => actions.onCharge(c), h('span', { class: 'hidden sm:inline' }, 'Cobrar')),
         action(
           'toggle',
           paidRow ? 'Marcar como pendente' : 'Marcar como pago',

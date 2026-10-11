@@ -2,7 +2,7 @@ import './style.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 import { chargeState } from './lib/charges.js';
-import { buildMessage, formatMoney, whatsappUrl } from './lib/messages.js';
+import { buildMessage, whatsappUrl } from './lib/messages.js';
 import { generatePixCopiaECola } from './lib/pix.js';
 import { monthOf, todayISO } from './lib/dates.js';
 import * as store from './lib/store.js';
@@ -11,7 +11,7 @@ import { clear, h, icon } from './ui/dom.js';
 import { createDashboard } from './ui/dashboard.js';
 import { createHistory } from './ui/history.js';
 import { renderLogin } from './ui/login.js';
-import { closeModal, openClientModal, openConfigModal, openQrCodeModal } from './ui/modals.js';
+import { closeModal, openClientModal, openConfigModal } from './ui/modals.js';
 import { toast } from './ui/toast.js';
 
 const root = document.getElementById('app');
@@ -46,13 +46,27 @@ function showLogin(isRecovery = false) {
         state.session = await store.signIn(email, password);
         await startApp();
       },
+      async onRegister(email, password) {
+        const res = await store.signUp(email, password);
+        if (res?.session) {
+          state.session = res.session;
+          await startApp();
+          toast('Conta criada com sucesso!', 'ok');
+        }
+        return res;
+      },
       async onResetPassword(email) {
         await store.resetPassword(email);
       },
       async onSetNewPassword(newPassword) {
         await store.updatePassword(newPassword);
+        if (window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
         toast('Senha atualizada com sucesso!', 'ok');
-        await startApp();
+        state.session = await store.getSession();
+        if (state.session) await startApp();
+        else showLogin();
       },
     })
   );
@@ -81,7 +95,6 @@ supabase.auth.onAuthStateChange((event) => {
 function mountShell() {
   const dashboard = createDashboard({
     onCharge: (c) => sendWhatsApp(c, 'charge'),
-    onQrCode: (c) => showQrCode(c),
     onReceipt: (c) => sendWhatsApp(c, 'receipt'),
     onToggle: toggleCharge,
     onEdit: (c) => openClientModal({ client: state.clients.find((x) => x.id === c.client_id), onSave: saveClient }),
@@ -241,22 +254,6 @@ function sendWhatsApp(charge, type) {
   act(() => store.logMessage(charge.id, type));
 }
 
-function showQrCode(charge) {
-  const client = charge.clients;
-  const s = state.settings;
-  const pixCode = generatePixCopiaECola(s.pix_key, s.pix_key_type, s.merchant_name, s.merchant_city, charge.amount);
-  if (!pixCode) {
-    toast('Configure uma Chave Pix válida antes de gerar o QR Code.', 'error');
-    return openConfig();
-  }
-  openQrCodeModal({
-    clientName: client?.name || 'Cliente',
-    amountFormatted: formatMoney(charge.amount),
-    pixCode,
-    pixKey: s.pix_key,
-  });
-}
-
 function openConfig() {
   openConfigModal({
     settings: state.settings,
@@ -355,6 +352,13 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 (async function init() {
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+  const isRecovery = hash.includes('type=recovery') || new URLSearchParams(search).get('type') === 'recovery';
+  if (isRecovery) {
+    showLogin(true);
+    return;
+  }
   state.session = await store.getSession();
   if (state.session) await startApp();
   else showLogin();

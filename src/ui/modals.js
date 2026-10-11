@@ -1,7 +1,6 @@
 import { clear, h, icon } from './dom.js';
 import { normalizePhone, sanitizePixKey } from '../lib/pix.js';
 import { toast } from './toast.js';
-import QRCode from 'qrcode';
 
 const inputCls =
   'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition';
@@ -205,64 +204,5 @@ export function openConfigModal({ settings, email, archived, handlers }) {
     h('button', { type: 'button', class: 'px-4 py-2.5 bg-slate-800/80 hover:bg-rose-500/10 hover:text-rose-400 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition flex items-center gap-2', onclick: () => { closeModal(); handlers.onLogout(); } }, icon('fa-solid fa-right-from-bracket text-xs'), ' Sair'));
 
   showModal({ title: 'Configurações de Cobrança', subtitle: 'Seus dados para gerar o Pix Copia e Cola', wide: true, content: h('div', {}, form, archivedBox, backup, account), labelledBy: 'configModalTitle' });
-}
-
-// ---------- QR Code Pix ----------
-export function openQrCodeModal({ clientName, amountFormatted, pixCode, pixKey }) {
-  const canvas = h('canvas', { class: 'rounded-xl mx-auto shadow-md max-w-full' });
-  QRCode.toCanvas(canvas, pixCode, {
-    width: 240,
-    margin: 2,
-    color: { dark: '#030712', light: '#ffffff' },
-  }).catch(() => {});
-
-  const copyBtn = h(
-    'button',
-    {
-      type: 'button',
-      class: 'w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-500/15 flex items-center justify-center gap-2 active:scale-[0.98]',
-      onclick: async () => {
-        try {
-          await navigator.clipboard.writeText(pixCode);
-          toast('Código Pix copiado com sucesso!', 'ok');
-        } catch {
-          toast('Não foi possível copiar automaticamente.', 'error');
-        }
-      },
-    },
-    icon('fa-regular fa-copy text-xs'),
-    'Copiar Pix Copia e Cola'
-  );
-
-  const content = h(
-    'div',
-    { class: 'space-y-4 text-center' },
-    h('div', { class: 'bg-white p-3 rounded-2xl inline-block mx-auto' }, canvas),
-    h(
-      'div',
-      { class: 'bg-slate-950/80 border border-slate-800/80 rounded-2xl p-3.5 text-left space-y-1.5' },
-      h('div', { class: 'flex justify-between text-xs' },
-        h('span', { class: 'text-slate-400' }, 'Cliente:'),
-        h('span', { class: 'font-semibold text-white' }, clientName)
-      ),
-      h('div', { class: 'flex justify-between text-xs' },
-        h('span', { class: 'text-slate-400' }, 'Valor:'),
-        h('span', { class: 'font-bold text-emerald-400 font-mono' }, amountFormatted)
-      ),
-      pixKey ? h('div', { class: 'flex justify-between text-xs' },
-        h('span', { class: 'text-slate-400' }, 'Chave:'),
-        h('span', { class: 'font-mono text-slate-300 text-[11px]' }, pixKey)
-      ) : null
-    ),
-    copyBtn,
-    h('button', { type: 'button', class: `w-full ${ghostBtn}`, onclick: closeModal }, 'Fechar')
-  );
-
-  showModal({
-    title: 'QR Code Pix',
-    subtitle: 'Aponte a câmera do aplicativo bancário para pagar',
-    content,
-    labelledBy: 'qrCodeModalTitle',
-  });
 }
 
