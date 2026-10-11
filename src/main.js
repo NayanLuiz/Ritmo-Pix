@@ -86,9 +86,21 @@ window.addEventListener('focus', () => {
   if (shell && Date.now() - lastRefreshAt > 10000) refreshAll();
 });
 
-supabase.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_OUT') showLogin();
-  else if (event === 'PASSWORD_RECOVERY') showLogin(true);
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT') {
+    showLogin();
+  } else if (event === 'PASSWORD_RECOVERY') {
+    showLogin(true);
+  } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+    if (session && !shell) {
+      state.session = session;
+      if (window.location.hash || window.location.search) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      toast('E-mail confirmado com sucesso! Bem-vindo.', 'ok');
+      await startApp();
+    }
+  }
 });
 
 // ---------- Tela principal ----------
@@ -359,7 +371,31 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     showLogin(true);
     return;
   }
+
+  // Se veio código de troca do Supabase (?code=...), troca pela sessão ativa
+  const code = new URLSearchParams(search).get('code');
+  if (code) {
+    try {
+      const { data } = await supabase.auth.exchangeCodeForSession(code);
+      if (data?.session) {
+        window.history.replaceState(null, '', window.location.pathname);
+        state.session = data.session;
+        toast('E-mail confirmado com sucesso!', 'ok');
+        await startApp();
+        return;
+      }
+    } catch {
+      // continua para getSession normal
+    }
+  }
+
   state.session = await store.getSession();
-  if (state.session) await startApp();
-  else showLogin();
+  if (state.session) {
+    if (hash || search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    await startApp();
+  } else {
+    showLogin();
+  }
 })();
