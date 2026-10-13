@@ -254,22 +254,20 @@ function mountShell() {
         h(
           'div',
           {},
-          h('div', { class: 'flex items-center gap-2' },
-            h('h1', { class: 'text-base font-bold text-white tracking-tight' }, 'Ritmo', h('span', { class: 'text-emerald-400' }, 'Pix')),
-            h('span', { id: 'syncBadge', class: 'text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' }, 'Nuvem')),
-          h('p', { class: 'text-xs text-slate-400 font-medium' }, 'Controle mensal • Pix e WhatsApp')
+          h('h1', { class: 'text-base font-bold text-white tracking-tight' }, 'Ritmo', h('span', { class: 'text-emerald-400' }, 'Pix')),
+          h('p', { class: 'text-xs text-slate-400 font-medium mt-0.5' }, 'Controle mensal • Pix e WhatsApp')
         )
       ),
       h(
         'div',
-        { class: 'flex items-center gap-2 flex-wrap' },
+        { class: 'flex items-center gap-2 sm:gap-2.5 flex-wrap w-full sm:w-auto justify-start sm:justify-end' },
         planBadgeContainer,
         bell,
         h('button', { id: 'configBtn', type: 'button', title: 'Configurações', 'aria-label': 'Configurações', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: openConfig }, icon('fa-solid fa-sliders')),
         h('button', {
           id: 'newClientBtn',
           type: 'button',
-          class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95',
+          class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95 shrink-0',
           onclick: () => {
             if (!requireActivePlan('cadastrar novos alunos ou clientes')) return;
             openClientModal({ onSave: saveClient });

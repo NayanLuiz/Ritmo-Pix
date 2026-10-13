@@ -8,12 +8,13 @@ export function h(tag, attrs = {}, ...children) {
     else if (value === true) el.setAttribute(key, '');
     else el.setAttribute(key, value);
   }
-  append(el, children);
+  append(el, ...children);
   return el;
 }
 
-export function append(el, children) {
-  for (const child of children.flat(Infinity)) {
+export function append(el, ...children) {
+  const flatChildren = children.flat(Infinity);
+  for (const child of flatChildren) {
     if (child == null || child === false) continue;
     el.append(child.nodeType ? child : document.createTextNode(String(child)));
   }

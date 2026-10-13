@@ -47,9 +47,21 @@ export function createDashboard(actions) {
   const filterButtons = {};
   const filterBar = h(
     'div',
-    { class: 'flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl shrink-0', role: 'group', 'aria-label': 'Filtrar cobranças' },
+    { class: 'flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl shrink-0 gap-1', role: 'group', 'aria-label': 'Filtrar cobranças' },
     ['todos', 'pendentes', 'pagos'].map((f) => {
-      const b = h('button', { id: `filter-${f}`, type: 'button', onclick: () => setFilter(f) }, f[0].toUpperCase() + f.slice(1));
+      const b = h(
+        'button',
+        {
+          id: `filter-${f}`,
+          type: 'button',
+          class:
+            f === 'todos'
+              ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition cursor-pointer'
+              : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer',
+          onclick: () => setFilter(f),
+        },
+        f[0].toUpperCase() + f.slice(1)
+      );
       filterButtons[f] = b;
       return b;
     })
@@ -104,8 +116,7 @@ export function createDashboard(actions) {
     if (planDetails.isExpired) {
       planBanner.className =
         'fade-up mb-5 bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/40 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl';
-      append(
-        planBanner,
+      planBanner.append(
         h(
           'div',
           { class: 'space-y-1' },
@@ -144,8 +155,7 @@ export function createDashboard(actions) {
     if (planDetails.isTrial) {
       planBanner.className =
         'fade-up mb-5 bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
-      append(
-        planBanner,
+      planBanner.append(
         h(
           'div',
           { class: 'flex items-center gap-3' },
@@ -184,8 +194,7 @@ export function createDashboard(actions) {
     if (summary.today.count) parts.push(`${summary.today.count} vence${summary.today.count > 1 ? 'm' : ''} hoje`);
     if (!parts.length) return alertBar.classList.add('hidden');
     alertBar.className = 'fade-up mb-5 flex items-center gap-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl px-4 py-3';
-    append(
-      alertBar,
+    alertBar.append(
       icon('fa-solid fa-bell text-amber-400'),
       h('p', { class: 'text-xs font-semibold text-amber-200' }, 'Atenção: ', parts.join(' • '))
     );
