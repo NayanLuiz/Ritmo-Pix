@@ -1,7 +1,7 @@
 import { clear, h, icon } from './dom.js';
 
 const input =
-  'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition';
+  'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white focus:outline-none transition';
 
 export function renderLogin({ onSubmit, onRegister, onResetPassword, onSetNewPassword, isRecovery = false }) {
   let mode = isRecovery ? 'new-password' : 'login'; // 'login' | 'register' | 'forgot' | 'new-password'
@@ -266,7 +266,7 @@ export function renderLogin({ onSubmit, onRegister, onResetPassword, onSetNewPas
     { class: 'min-h-screen flex items-center justify-center px-4 py-10' },
     h(
       'section',
-      { class: 'fade-up w-full max-w-sm bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-7 shadow-2xl' },
+      { class: 'fade-up w-full max-w-sm bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl' },
       h(
         'div',
         { class: 'flex flex-col items-center text-center mb-6' },

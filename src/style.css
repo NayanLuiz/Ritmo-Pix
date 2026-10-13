@@ -6,6 +6,12 @@
 
 body {
   font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+button, a, input, select {
+  touch-action: manipulation;
 }
 
 input::-webkit-outer-spin-button,

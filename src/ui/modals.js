@@ -3,7 +3,7 @@ import { normalizePhone, sanitizePixKey } from '../lib/pix.js';
 import { toast } from './toast.js';
 
 const inputCls =
-  'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition';
+  'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white focus:outline-none transition';
 const labelCls = 'block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5';
 const primaryBtn = 'py-3 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-500/10 active:scale-[0.98]';
 const ghostBtn = 'py-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-300 transition';
@@ -24,12 +24,12 @@ function showModal({ title, subtitle, wide, content, labelledBy }) {
   const el = h(
     'div',
     {
-      class: 'fixed inset-0 bg-[#030712]/80 backdrop-blur-md flex items-center justify-center p-4 z-40',
+      class: 'fixed inset-0 bg-[#030712]/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-40',
       onclick: (e) => e.target === el && closeModal(),
     },
     h(
       'div',
-      { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': labelledBy, class: `fade-up bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-7 ${wide ? 'max-w-lg' : 'max-w-md'} w-full shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll` },
+      { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': labelledBy, class: `fade-up bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 ${wide ? 'max-w-lg' : 'max-w-md'} w-full shadow-2xl max-h-[92vh] overflow-y-auto custom-scroll` },
       h(
         'div',
         { class: 'flex justify-between items-start mb-5 pb-3 border-b border-slate-800/60' },

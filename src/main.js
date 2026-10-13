@@ -156,7 +156,7 @@ function paintPlanBadge(planDetails) {
       h(
         'span',
         {
-          class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+          class: 'inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
           title: 'Plano PRO Ativo • Acesso Ilimitado',
         },
         icon('fa-solid fa-bolt text-emerald-400 text-xs'),
@@ -171,7 +171,7 @@ function paintPlanBadge(planDetails) {
       h(
         'span',
         {
-          class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20',
+          class: 'inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20',
           title: `Degustação: ${planDetails.daysRemaining} dias restantes`,
         },
         icon('fa-regular fa-clock text-amber-400 text-xs'),
@@ -181,7 +181,7 @@ function paintPlanBadge(planDetails) {
         'button',
         {
           type: 'button',
-          class: 'flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 text-slate-950 transition shadow-md shadow-amber-500/20 cursor-pointer',
+          class: 'flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 text-slate-950 transition shadow-md shadow-amber-500/20 cursor-pointer',
           onclick: openUpgrade,
         },
         icon('fa-solid fa-bolt text-xs'),
@@ -196,7 +196,7 @@ function paintPlanBadge(planDetails) {
     h(
       'span',
       {
-        class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20',
+        class: 'inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20',
       },
       icon('fa-solid fa-triangle-exclamation text-rose-400 text-xs'),
       'TESTE EXPIRADO'
@@ -205,7 +205,7 @@ function paintPlanBadge(planDetails) {
       'button',
       {
         type: 'button',
-        class: 'flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 text-white transition shadow-md shadow-rose-500/20 animate-pulse cursor-pointer',
+        class: 'flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 text-white transition shadow-md shadow-rose-500/20 animate-pulse cursor-pointer',
         onclick: openUpgrade,
       },
       icon('fa-solid fa-bolt text-xs'),
@@ -229,13 +229,13 @@ function mountShell() {
   const history = createHistory();
 
   const bell = h('button', { id: 'bellBtn', type: 'button', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: enableNotifications });
-  const planBadgeContainer = h('div', { id: 'planBadgeContainer', class: 'flex items-center gap-2' });
+  const planBadgeContainer = h('div', { id: 'planBadgeContainer', class: 'flex items-center gap-1.5 sm:gap-2 flex-wrap' });
   const tabs = {};
   const tabBar = h(
     'nav',
-    { class: 'flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl mb-6 self-start', 'aria-label': 'Seções' },
+    { class: 'grid grid-cols-2 sm:flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl mb-6 w-full sm:w-auto self-stretch sm:self-start gap-1', 'aria-label': 'Seções' },
     [['cobrancas', 'Cobranças', 'fa-solid fa-list-check'], ['historico', 'Histórico', 'fa-solid fa-chart-column']].map(([id, label, ic]) => {
-      const b = h('button', { type: 'button', id: `tab-${id}`, onclick: () => setTab(id) }, icon(`${ic} text-[11px] mr-2`), label);
+      const b = h('button', { type: 'button', id: `tab-${id}`, class: 'flex items-center justify-center', onclick: () => setTab(id) }, icon(`${ic} text-[11px] mr-2`), label);
       tabs[id] = b;
       return b;
     })
@@ -243,31 +243,35 @@ function mountShell() {
 
   const app = h(
     'main',
-    { id: 'mainApp', class: 'flex-1 max-w-3xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col' },
+    { id: 'mainApp', class: 'flex-1 max-w-3xl w-full mx-auto px-3.5 sm:px-4 py-4 sm:py-8 flex flex-col' },
     h(
       'header',
-      { class: 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-800/60' },
+      { class: 'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 sm:gap-4 pb-5 sm:pb-6 mb-5 sm:mb-6 border-b border-slate-800/60' },
       h(
         'div',
-        { class: 'flex items-center gap-3.5' },
-        h('div', { class: 'w-11 h-11 bg-slate-900 border border-emerald-500/30 rounded-2xl flex items-center justify-center shrink-0 shadow-inner' }, h('img', { src: '/ritmopix-logo.png', alt: '', class: 'w-10 h-10 object-contain' })),
+        { class: 'flex items-center justify-between' },
         h(
           'div',
-          {},
-          h('h1', { class: 'text-base font-bold text-white tracking-tight' }, 'Ritmo', h('span', { class: 'text-emerald-400' }, 'Pix')),
-          h('p', { class: 'text-xs text-slate-400 font-medium mt-0.5' }, 'Controle mensal • Pix e WhatsApp')
-        )
+          { class: 'flex items-center gap-3' },
+          h('div', { class: 'w-10 h-10 sm:w-11 sm:h-11 bg-slate-900 border border-emerald-500/30 rounded-2xl flex items-center justify-center shrink-0 shadow-inner' }, h('img', { src: '/ritmopix-logo.png', alt: '', class: 'w-9 h-9 sm:w-10 sm:h-10 object-contain' })),
+          h(
+            'div',
+            {},
+            h('h1', { class: 'text-base font-bold text-white tracking-tight' }, 'Ritmo', h('span', { class: 'text-emerald-400' }, 'Pix')),
+            h('p', { class: 'text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5' }, 'Controle mensal • Pix e WhatsApp')
+          )
+        ),
+        h('div', { class: 'flex sm:hidden items-center gap-2' }, bell, h('button', { id: 'configBtnMobile', type: 'button', title: 'Configurações', 'aria-label': 'Configurações', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: openConfig }, icon('fa-solid fa-sliders')))
       ),
       h(
         'div',
-        { class: 'flex items-center gap-2 sm:gap-2.5 flex-wrap w-full sm:w-auto justify-start sm:justify-end' },
+        { class: 'flex items-center gap-2 sm:gap-2.5 flex-wrap w-full sm:w-auto justify-between sm:justify-end' },
         planBadgeContainer,
-        bell,
-        h('button', { id: 'configBtn', type: 'button', title: 'Configurações', 'aria-label': 'Configurações', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: openConfig }, icon('fa-solid fa-sliders')),
+        h('div', { class: 'hidden sm:flex items-center gap-2' }, bell, h('button', { id: 'configBtn', type: 'button', title: 'Configurações', 'aria-label': 'Configurações', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: openConfig }, icon('fa-solid fa-sliders'))),
         h('button', {
           id: 'newClientBtn',
           type: 'button',
-          class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95 shrink-0',
+          class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95 shrink-0 flex-1 sm:flex-initial',
           onclick: () => {
             if (!requireActivePlan('cadastrar novos alunos ou clientes')) return;
             openClientModal({ onSave: saveClient });
@@ -295,8 +299,8 @@ function setTab(tab) {
   for (const [id, b] of Object.entries(shell.tabs)) {
     b.className =
       id === tab
-        ? 'px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition'
-        : 'px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+        ? 'px-4 py-2 sm:py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition flex items-center justify-center cursor-pointer'
+        : 'px-4 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center cursor-pointer';
     b.setAttribute('aria-current', id === tab ? 'page' : 'false');
   }
   shell.dashboard.el.hidden = tab !== 'cobrancas';

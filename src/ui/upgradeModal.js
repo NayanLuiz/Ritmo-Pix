@@ -83,7 +83,7 @@ export function openUpgradeModal({ user, settings, onSuccess }) {
   const modalBox = h('div', {
     role: 'dialog',
     'aria-modal': 'true',
-    class: 'bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-7 max-w-lg w-full shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto custom-scroll animate-in fade-in',
+    class: 'bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-7 max-w-lg w-full shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto custom-scroll animate-in fade-in',
   });
 
   function cleanupAndClose() {
@@ -202,7 +202,7 @@ export function openUpgradeModal({ user, settings, onSuccess }) {
         required: true,
         placeholder: '000.000.000-00 ou 00.000.000/0000-00',
         value: savedDoc,
-        class: 'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono',
+        class: 'w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono',
         oninput: (e) => {
           e.target.value = formatCpfCnpj(e.target.value);
         },

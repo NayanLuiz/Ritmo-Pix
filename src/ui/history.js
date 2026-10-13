@@ -12,7 +12,7 @@ function statCard({ label, value, hint, tone }) {
   const tones = { emerald: 'text-emerald-400', amber: 'text-amber-400', sky: 'text-sky-400' };
   return h(
     'div',
-    { class: 'bg-gradient-to-b from-slate-900/70 to-slate-950 border border-slate-800/80 rounded-2xl p-4 sm:p-5' },
+    { class: 'bg-gradient-to-b from-slate-900/70 to-slate-950 border border-slate-800/80 rounded-2xl p-3.5 sm:p-5' },
     h('p', { class: 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2' }, label),
     h('p', { class: `text-lg sm:text-2xl font-bold font-mono tracking-tight ${tones[tone]}` }, value),
     h('p', { class: 'text-[11px] text-slate-500 mt-1' }, hint)

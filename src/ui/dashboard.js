@@ -40,14 +40,14 @@ export function createDashboard(actions) {
     type: 'search',
     placeholder: 'Buscar contato...',
     'aria-label': 'Buscar contato',
-    class: 'w-full bg-slate-900/80 border border-slate-800/80 focus:border-emerald-500/80 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition',
+    class: 'w-full bg-slate-900/80 border border-slate-800/80 focus:border-emerald-500/80 rounded-xl pl-9 pr-4 py-2.5 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition',
     oninput: () => renderList(),
   });
 
   const filterButtons = {};
   const filterBar = h(
     'div',
-    { class: 'flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl shrink-0 gap-1', role: 'group', 'aria-label': 'Filtrar cobranças' },
+    { class: 'grid grid-cols-3 sm:flex p-1 bg-slate-900/90 border border-slate-800/80 rounded-xl w-full sm:w-auto shrink-0 gap-1', role: 'group', 'aria-label': 'Filtrar cobranças' },
     ['todos', 'pendentes', 'pagos'].map((f) => {
       const b = h(
         'button',
@@ -56,8 +56,8 @@ export function createDashboard(actions) {
           type: 'button',
           class:
             f === 'todos'
-              ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition cursor-pointer'
-              : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer',
+              ? 'px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition cursor-pointer text-center flex items-center justify-center'
+              : 'px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer text-center flex items-center justify-center',
           onclick: () => setFilter(f),
         },
         f[0].toUpperCase() + f.slice(1)
@@ -100,8 +100,8 @@ export function createDashboard(actions) {
     for (const [f, b] of Object.entries(filterButtons)) {
       b.className =
         f === filter
-          ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition'
-          : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+          ? 'px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition cursor-pointer text-center flex items-center justify-center'
+          : 'px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer text-center flex items-center justify-center';
       b.setAttribute('aria-pressed', String(f === filter));
     }
   }
@@ -234,18 +234,18 @@ export function createDashboard(actions) {
 
     return h(
       'div',
-      { class: 'p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 hover:bg-slate-800/20 transition' },
+      { class: 'p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-800/20 transition' },
       h(
         'div',
-        { class: 'flex items-center gap-3.5 min-w-0' },
+        { class: 'flex items-center gap-3 sm:gap-3.5 min-w-0' },
         h('div', { class: `w-10 h-10 rounded-2xl bg-gradient-to-tr ${paidRow ? 'from-emerald-950 to-slate-900 text-emerald-400 border-emerald-500/20' : 'from-slate-800 to-slate-900 text-slate-300 border-slate-700/50'} border flex items-center justify-center font-bold text-xs shrink-0 shadow-sm` }, initials),
         h(
           'div',
-          { class: 'min-w-0' },
+          { class: 'min-w-0 flex-1' },
           h('div', { class: 'flex items-center gap-2 mb-1 flex-wrap' }, h('p', { class: 'font-semibold text-white text-sm truncate tracking-tight' }, name), stateBadge(state, c, data.today, data.month)),
           h(
             'div',
-            { class: 'flex items-center gap-2 flex-wrap' },
+            { class: 'flex items-center gap-1.5 sm:gap-2 flex-wrap' },
             h('span', { class: 'text-xs font-semibold text-slate-300 font-mono' }, formatMoney(c.amount)),
             h('span', { class: 'text-slate-700 text-xs' }, '•'),
             h('span', { class: 'text-xs text-slate-400' }, dueText),
@@ -255,19 +255,19 @@ export function createDashboard(actions) {
       ),
       h(
         'div',
-        { class: 'flex items-center gap-1.5 shrink-0' },
+        { class: 'flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/50 sm:border-t-0' },
         paidRow
-          ? action('receipt', 'Enviar recibo pelo WhatsApp', 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 active:scale-95', 'fa-solid fa-receipt text-xs', () => actions.onReceipt(c), h('span', { class: 'hidden sm:inline' }, 'Recibo'))
-          : action('charge', 'Abrir cobrança no WhatsApp', 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md shadow-emerald-500/15 active:scale-95', 'fa-brands fa-whatsapp text-sm', () => actions.onCharge(c), h('span', { class: 'hidden sm:inline' }, 'Cobrar')),
+          ? action('receipt', 'Enviar recibo pelo WhatsApp', 'flex-1 sm:flex-initial justify-center bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 active:scale-95', 'fa-solid fa-receipt text-xs', () => actions.onReceipt(c), h('span', {}, 'Recibo'))
+          : action('charge', 'Abrir cobrança no WhatsApp', 'flex-1 sm:flex-initial justify-center bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md shadow-emerald-500/15 active:scale-95', 'fa-brands fa-whatsapp text-sm', () => actions.onCharge(c), h('span', {}, 'Cobrar')),
         action(
           'toggle',
           paidRow ? 'Marcar como pendente' : 'Marcar como pago',
-          `p-2.5 ${paidRow ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'} border hover:bg-slate-800 rounded-xl text-xs transition active:scale-95`,
+          `p-2.5 ${paidRow ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'} border hover:bg-slate-800 rounded-xl text-xs transition active:scale-95 shrink-0`,
           paidRow ? 'fa-solid fa-rotate-left' : 'fa-solid fa-check',
           () => actions.onToggle(c)
         ),
-        action('edit', 'Editar cliente', iconBtn, 'fa-solid fa-pen', () => actions.onEdit(c)),
-        action('archive', 'Arquivar cliente', iconBtn.replace('hover:text-white', 'hover:text-amber-400'), 'fa-solid fa-box-archive', () => actions.onArchive(c))
+        action('edit', 'Editar cliente', `${iconBtn} shrink-0`, 'fa-solid fa-pen', () => actions.onEdit(c)),
+        action('archive', 'Arquivar cliente', `${iconBtn.replace('hover:text-white', 'hover:text-amber-400')} shrink-0`, 'fa-solid fa-box-archive', () => actions.onArchive(c))
       )
     );
   }
