@@ -14,6 +14,9 @@ export const DEFAULT_SETTINGS = {
   pix_key_type: '',
   merchant_name: '',
   merchant_city: '',
+  plan_status: 'free',
+  trial_ends_at: null,
+  role: 'user',
 };
 
 // ---------- Autenticação ----------
@@ -56,26 +59,73 @@ export async function updatePassword(newPassword) {
   if (error) throw new Error(error.message);
 }
 
-// ---------- Configurações ----------
-export async function loadSettings() {
+// ---------- Configurações e Plano ----------
+export async function loadSettings(user) {
   const row = check(await supabase.from('settings').select('*').maybeSingle());
-  return { ...DEFAULT_SETTINGS, ...(row || {}) };
+  const res = { ...DEFAULT_SETTINGS, ...(row || {}) };
+  if (!res.trial_ends_at) {
+    const base = user?.created_at ? new Date(user.created_at).getTime() : Date.now();
+    res.trial_ends_at = new Date(base + 5 * 24 * 60 * 60 * 1000).toISOString();
+  }
+  return res;
+}
+
+export async function checkPlanStatus(userId) {
+  if (!userId) return null;
+  const { data } = await supabase
+    .from('settings')
+    .select('plan_status, trial_ends_at, role')
+    .eq('user_id', userId)
+    .maybeSingle();
+  return data;
 }
 
 export async function saveSettings(userId, s) {
+  const payload = {
+    user_id: userId,
+    pix_key: s.pix_key,
+    pix_key_type: s.pix_key_type,
+    merchant_name: s.merchant_name,
+    merchant_city: s.merchant_city,
+    updated_at: new Date().toISOString(),
+  };
+  if (s.plan_status) payload.plan_status = s.plan_status;
+  if (s.trial_ends_at) payload.trial_ends_at = s.trial_ends_at;
+  if (s.role) payload.role = s.role;
+
   check(
-    await supabase.from('settings').upsert(
-      {
-        user_id: userId,
-        pix_key: s.pix_key,
-        pix_key_type: s.pix_key_type,
-        merchant_name: s.merchant_name,
-        merchant_city: s.merchant_city,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    )
+    await supabase.from('settings').upsert(payload, { onConflict: 'user_id' })
   );
+}
+
+export async function listAllUsersForAdmin() {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('*')
+    .order('updated_at', { ascending: false });
+  if (error) {
+    console.warn('Aviso ao listar usuários como admin:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function updateUserPlanAsAdmin(userId, nextStatus) {
+  const trialEndsAt =
+    nextStatus === 'free'
+      ? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
+
+  const updatePayload = { plan_status: nextStatus };
+  if (trialEndsAt) updatePayload.trial_ends_at = trialEndsAt;
+
+  const { error } = await supabase
+    .from('settings')
+    .update(updatePayload)
+    .eq('user_id', userId);
+
+  if (error) throw new Error(error.message);
+  return true;
 }
 
 // ---------- Clientes ----------

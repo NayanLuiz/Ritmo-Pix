@@ -44,7 +44,7 @@ npm install
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
 2. Vá em **SQL Editor** > **New query**, cole todo o conteúdo do arquivo [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**.
 3. Em **Authentication** > **Users**, crie o seu usuário de acesso com e-mail e senha (marque *Auto Confirm User*).
-4. *(Recomendado para segurança)*: Em **Authentication** > **Providers** > **Email**, desmarque a opção *Allow new users to sign up* para manter o sistema privado apenas para você.
+4. **Modelo de Assinatura & SaaS**: Ao criar conta, cada usuário recebe 5 dias de degustação gratuita. Após o término, o sistema exige ativação do Plano PRO (R$ 29,90/mês) via Pix Asaas com baixa instantânea. O e-mail `nayanlima27@gmail.com` possui acesso vitalício como Superadmin e painel de controle.
 
 ### 3. Configurar Variáveis de Ambiente
 

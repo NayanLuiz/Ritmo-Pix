@@ -199,10 +199,86 @@ export function openConfigModal({ settings, email, archived, handlers }) {
       h('label', { class: 'py-2.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer' }, icon('fa-solid fa-upload text-xs'), ' Restaurar', file))
   );
 
-  const account = h('div', { class: 'mt-6 pt-6 border-t border-slate-800/80 flex items-center justify-between gap-3' },
-    h('div', { class: 'min-w-0' }, h('p', { class: labelCls + ' mb-0.5' }, 'Conta'), h('p', { class: 'text-xs text-slate-300 truncate' }, email)),
-    h('button', { type: 'button', class: 'px-4 py-2.5 bg-slate-800/80 hover:bg-rose-500/10 hover:text-rose-400 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition flex items-center gap-2', onclick: () => { closeModal(); handlers.onLogout(); } }, icon('fa-solid fa-right-from-bracket text-xs'), ' Sair'));
+    const planDetails = handlers.planDetails;
+    const planSection = h(
+      'div',
+      { class: 'mt-6 pt-6 border-t border-slate-800/80 space-y-3' },
+      h(
+        'div',
+        { class: 'flex items-center justify-between' },
+        h('h4', { class: `${labelCls} mb-0` }, 'Assinatura & Plano'),
+        h(
+          'span',
+          {
+            class: `text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+              planDetails?.isSuperAdmin
+                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                : planDetails?.isPro
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : planDetails?.isTrial
+                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            }`,
+          },
+          planDetails?.statusLabel || 'Plano PRO'
+        )
+      ),
+      h(
+        'div',
+        { class: 'bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-3' },
+        h(
+          'div',
+          {},
+          h('p', { class: 'text-xs font-bold text-white' }, planDetails?.isPro ? 'Plano PRO Ilimitado' : 'Plano PRO RitmoPix (R$ 29,90/mês)'),
+          h(
+            'p',
+            { class: 'text-[11px] text-slate-400' },
+            planDetails?.isPro
+              ? 'Cobranças, clientes e mensagens liberadas sem travas.'
+              : planDetails?.isTrial
+              ? `${planDetails.daysRemaining} dias restantes de degustação gratuita.`
+              : 'Período de teste concluído. Ative para desbloquear o sistema.'
+          )
+        ),
+        !planDetails?.isPro &&
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'px-3 py-2 bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/15 cursor-pointer shrink-0',
+              onclick: () => {
+                closeModal();
+                handlers.onOpenUpgrade?.();
+              },
+            },
+            'Assinar PRO'
+          )
+      ),
+      planDetails?.isSuperAdmin &&
+        h(
+          'button',
+          {
+            type: 'button',
+            class: 'w-full py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer',
+            onclick: () => {
+              closeModal();
+              handlers.onOpenSuperadmin?.();
+            },
+          },
+          icon('fa-solid fa-shield-halved text-xs text-purple-400'),
+          ' Abrir Painel Superadmin'
+        )
+    );
 
-  showModal({ title: 'Configurações de Cobrança', subtitle: 'Seus dados para gerar o Pix Copia e Cola', wide: true, content: h('div', {}, form, archivedBox, backup, account), labelledBy: 'configModalTitle' });
-}
+    const account = h('div', { class: 'mt-6 pt-6 border-t border-slate-800/80 flex items-center justify-between gap-3' },
+      h('div', { class: 'min-w-0' }, h('p', { class: labelCls + ' mb-0.5' }, 'Conta'), h('p', { class: 'text-xs text-slate-300 truncate' }, email)),
+      h('button', { type: 'button', class: 'px-4 py-2.5 bg-slate-800/80 hover:bg-rose-500/10 hover:text-rose-400 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition flex items-center gap-2', onclick: () => { closeModal(); handlers.onLogout(); } }, icon('fa-solid fa-right-from-bracket text-xs'), ' Sair'));
+
+    showModal({ title: 'Configurações de Cobrança', subtitle: 'Seus dados para gerar o Pix Copia e Cola', wide: true, content: h('div', {}, form, planSection, archivedBox, backup, account), labelledBy: 'configModalTitle' });
+  }
+
+  export { openUpgradeModal } from './upgradeModal.js';
+  export { openSuperadminModal } from './superadminModal.js';
+
+
 

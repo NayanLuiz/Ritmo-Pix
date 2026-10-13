@@ -7,14 +7,25 @@ create extension if not exists "pgcrypto";
 -- ---------------------------------------------------------------
 -- Tabelas
 -- ---------------------------------------------------------------
-create table if not exists public.settings (
+create table if not exists public.settings ( 
   user_id        uuid primary key references auth.users(id) on delete cascade,
   pix_key        text not null default '',
   pix_key_type   text not null default '' check (pix_key_type in ('', 'cpf', 'cnpj', 'phone', 'email', 'random')),
   merchant_name  text not null default 'MEU NEGOCIO' check (char_length(merchant_name) between 1 and 100),
   merchant_city  text not null default 'NATAL'       check (char_length(merchant_city) between 1 and 100),
+  plan_status    text not null default 'free' check (plan_status in ('free', 'pro')),
+  trial_ends_at  timestamptz default (now() + interval '5 days'),
+  role           text not null default 'user',
+  created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()
 );
+
+-- Migrações idempotentes para tabelas existentes
+alter table public.settings add column if not exists plan_status text not null default 'free' check (plan_status in ('free', 'pro'));
+alter table public.settings add column if not exists trial_ends_at timestamptz default (now() + interval '5 days');
+alter table public.settings add column if not exists role text not null default 'user';
+alter table public.settings add column if not exists created_at timestamptz not null default now();
+
 
 create table if not exists public.clients (
   id          uuid primary key default gen_random_uuid(),
@@ -107,3 +118,56 @@ end $$;
 
 revoke all on function public.ensure_month_charges(text) from public, anon;
 grant execute on function public.ensure_month_charges(text) to authenticated;
+
+-- ---------------------------------------------------------------
+-- Automação de Novos Cadastros (Trial de 5 dias automático)
+-- Ao criar usuário no Supabase Auth, inicializa o perfil com 5 dias de degustação.
+-- O superadmin nayanlima27@gmail.com recebe acesso PRO vitalício.
+-- ---------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger as $$
+declare
+  is_super boolean;
+begin
+  is_super := (lower(coalesce(new.email, '')) = 'nayanlima27@gmail.com');
+
+  insert into public.settings (
+    user_id,
+    merchant_name,
+    merchant_city,
+    plan_status,
+    trial_ends_at,
+    role
+  )
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'merchant_name', 'MEU NEGOCIO'),
+    'NATAL',
+    case when is_super then 'pro' else 'free' end,
+    case when is_super then (now() + interval '100 years') else (now() + interval '5 days') end,
+    case when is_super then 'superadmin' else 'user' end
+  )
+  on conflict (user_id) do nothing;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Políticas adicionais para Superadmin gerenciar e listar todos os usuários
+drop policy if exists "superadmin manage settings" on public.settings;
+create policy "superadmin manage settings" on public.settings
+  for all to authenticated
+  using (
+    user_id = (select auth.uid()) or
+    lower(coalesce((select auth.jwt() ->> 'email'), '')) = 'nayanlima27@gmail.com'
+  )
+  with check (
+    user_id = (select auth.uid()) or
+    lower(coalesce((select auth.jwt() ->> 'email'), '')) = 'nayanlima27@gmail.com'
+  );
+

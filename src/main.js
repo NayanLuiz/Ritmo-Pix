@@ -11,7 +11,8 @@ import { clear, h, icon } from './ui/dom.js';
 import { createDashboard } from './ui/dashboard.js';
 import { createHistory } from './ui/history.js';
 import { renderLogin } from './ui/login.js';
-import { closeModal, openClientModal, openConfigModal } from './ui/modals.js';
+import { closeModal, openClientModal, openConfigModal, openUpgradeModal, openSuperadminModal } from './ui/modals.js';
+import { getPlanDetails, canOperate } from './lib/subscription.js';
 import { toast } from './ui/toast.js';
 
 const root = document.getElementById('app');
@@ -25,6 +26,7 @@ const state = {
   today: '',
   month: '',
   tab: 'cobrancas',
+  planDetails: null,
 };
 
 let shell = null; // referências da tela principal
@@ -103,18 +105,131 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+// ---------- Controle de Assinatura & Paywall ----------
+function requireActivePlan(actionName) {
+  if (!canOperate(state.settings, state.session?.user)) {
+    toast(`Período de teste concluído. Assine o Plano PRO para ${actionName}.`, 'error');
+    openUpgrade();
+    return false;
+  }
+  return true;
+}
+
+function openUpgrade() {
+  if (!state.session?.user) return;
+  openUpgradeModal({
+    user: state.session.user,
+    settings: state.settings,
+    onSuccess: () => refreshAll(),
+  });
+}
+
+function openSuperadmin() {
+  openSuperadminModal({
+    onRefresh: () => refreshAll(),
+  });
+}
+
+function paintPlanBadge(planDetails) {
+  if (!shell?.planBadgeContainer || !planDetails) return;
+  clear(shell.planBadgeContainer);
+
+  if (planDetails.isSuperAdmin) {
+    shell.planBadgeContainer.append(
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1.5 rounded-xl bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm cursor-pointer',
+          title: 'Superadmin Vitalício • Clique para gerenciar contas e planos',
+          onclick: openSuperadmin,
+        },
+        icon('fa-solid fa-shield-halved text-purple-400 text-xs'),
+        'SUPERADMIN'
+      )
+    );
+    return;
+  }
+
+  if (planDetails.isPro) {
+    shell.planBadgeContainer.append(
+      h(
+        'span',
+        {
+          class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+          title: 'Plano PRO Ativo • Acesso Ilimitado',
+        },
+        icon('fa-solid fa-bolt text-emerald-400 text-xs'),
+        'PRO ATIVO'
+      )
+    );
+    return;
+  }
+
+  if (planDetails.isTrial) {
+    shell.planBadgeContainer.append(
+      h(
+        'span',
+        {
+          class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20',
+          title: `Degustação: ${planDetails.daysRemaining} dias restantes`,
+        },
+        icon('fa-regular fa-clock text-amber-400 text-xs'),
+        `DEGUSTAÇÃO: ${planDetails.daysRemaining}D`
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 text-slate-950 transition shadow-md shadow-amber-500/20 cursor-pointer',
+          onclick: openUpgrade,
+        },
+        icon('fa-solid fa-bolt text-xs'),
+        h('span', {}, 'Assinar PRO')
+      )
+    );
+    return;
+  }
+
+  // Se expirado
+  shell.planBadgeContainer.append(
+    h(
+      'span',
+      {
+        class: 'hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20',
+      },
+      icon('fa-solid fa-triangle-exclamation text-rose-400 text-xs'),
+      'TESTE EXPIRADO'
+    ),
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 text-white transition shadow-md shadow-rose-500/20 animate-pulse cursor-pointer',
+        onclick: openUpgrade,
+      },
+      icon('fa-solid fa-bolt text-xs'),
+      h('span', {}, 'Reativar PRO')
+    )
+  );
+}
+
 // ---------- Tela principal ----------
 function mountShell() {
   const dashboard = createDashboard({
     onCharge: (c) => sendWhatsApp(c, 'charge'),
     onReceipt: (c) => sendWhatsApp(c, 'receipt'),
     onToggle: toggleCharge,
-    onEdit: (c) => openClientModal({ client: state.clients.find((x) => x.id === c.client_id), onSave: saveClient }),
+    onEdit: (c) => {
+      if (!requireActivePlan('editar clientes')) return;
+      openClientModal({ client: state.clients.find((x) => x.id === c.client_id), onSave: saveClient });
+    },
     onArchive: archiveClient,
   });
   const history = createHistory();
 
   const bell = h('button', { id: 'bellBtn', type: 'button', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: enableNotifications });
+  const planBadgeContainer = h('div', { id: 'planBadgeContainer', class: 'flex items-center gap-2' });
   const tabs = {};
   const tabBar = h(
     'nav',
@@ -147,10 +262,19 @@ function mountShell() {
       ),
       h(
         'div',
-        { class: 'flex items-center gap-2' },
+        { class: 'flex items-center gap-2 flex-wrap' },
+        planBadgeContainer,
         bell,
         h('button', { id: 'configBtn', type: 'button', title: 'Configurações', 'aria-label': 'Configurações', class: 'p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-sm transition', onclick: openConfig }, icon('fa-solid fa-sliders')),
-        h('button', { id: 'newClientBtn', type: 'button', class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95', onclick: () => openClientModal({ onSave: saveClient }) }, icon('fa-solid fa-plus text-[11px]'), h('span', {}, 'Novo Aluno/Cliente'))
+        h('button', {
+          id: 'newClientBtn',
+          type: 'button',
+          class: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/15 active:scale-95',
+          onclick: () => {
+            if (!requireActivePlan('cadastrar novos alunos ou clientes')) return;
+            openClientModal({ onSave: saveClient });
+          },
+        }, icon('fa-solid fa-plus text-[11px]'), h('span', {}, 'Novo Aluno/Cliente'))
       )
     ),
     tabBar,
@@ -162,7 +286,7 @@ function mountShell() {
     h('div', { class: 'fixed top-0 left-1/2 -translate-x-1/2 w-[700px] max-w-full h-[280px] bg-gradient-to-b from-emerald-500/15 via-emerald-600/5 to-transparent blur-3xl pointer-events-none -z-10', 'aria-hidden': 'true' }),
     app
   );
-  shell = { dashboard, history, bell, tabs };
+  shell = { dashboard, history, bell, tabs, planBadgeContainer };
   setTab(state.tab);
   paintBell();
 }
@@ -200,16 +324,24 @@ function refreshAll() {
       state.month = monthOf(state.today);
       await store.ensureMonth(state.month);
       const [settings, clients, charges] = await Promise.all([
-        store.loadSettings(),
+        store.loadSettings(state.session?.user),
         store.listClients(),
         store.listOpenCharges(state.month, state.today),
       ]);
       state.settings = settings;
       state.clients = clients;
       state.charges = charges;
+      state.planDetails = getPlanDetails(settings, state.session?.user);
       lastRefreshAt = Date.now();
       if (!shell) return;
-      const summary = shell.dashboard.update({ charges, today: state.today, month: state.month });
+      paintPlanBadge(state.planDetails);
+      const summary = shell.dashboard.update({
+        charges,
+        today: state.today,
+        month: state.month,
+        planDetails: state.planDetails,
+        onUpgrade: openUpgrade,
+      });
       updateAlerts(summary);
       if (state.tab === 'historico') refreshHistory();
     } catch (err) {
@@ -233,20 +365,26 @@ async function act(fn, okMessage) {
 }
 
 // ---------- Ações ----------
-const toggleCharge = (c) => act(() => store.setChargePaid(c.id, c.status !== 'pago'));
+const toggleCharge = (c) => {
+  if (!requireActivePlan('marcar ou alterar status de cobrança')) return;
+  act(() => store.setChargePaid(c.id, c.status !== 'pago'));
+};
 
 async function saveClient(data) {
+  if (!requireActivePlan('salvar dados de alunos ou clientes')) return;
   await store.saveClient(data, state.month);
   await refreshAll();
 }
 
 function archiveClient(c) {
+  if (!requireActivePlan('arquivar clientes')) return;
   const name = c.clients?.name || 'este cliente';
   if (!confirm(`Arquivar ${name}? Ele deixa de ser cobrado nos próximos meses, mas o histórico fica guardado.`)) return;
   act(() => store.setClientActive(c.client_id, false, state.today), `${name} arquivado.`);
 }
 
 function sendWhatsApp(charge, type) {
+  if (!requireActivePlan('enviar mensagens pelo WhatsApp')) return;
   const client = charge.clients;
   if (!client) return;
   const s = state.settings;
@@ -272,11 +410,17 @@ function openConfig() {
     email: state.session?.user?.email || '',
     archived: state.clients.filter((c) => !c.active),
     handlers: {
+      planDetails: state.planDetails,
+      onOpenUpgrade: openUpgrade,
+      onOpenSuperadmin: openSuperadmin,
       onSave: async (values) => {
         await store.saveSettings(state.session.user.id, values);
         state.settings = { ...state.settings, ...values };
+        state.planDetails = getPlanDetails(state.settings, state.session.user);
+        paintPlanBadge(state.planDetails);
       },
       onReactivate: async (c) => {
+        if (!requireActivePlan('reativar clientes')) return;
         await store.setClientActive(c.id, true, state.today);
         await refreshAll();
       },

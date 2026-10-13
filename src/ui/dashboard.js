@@ -33,6 +33,7 @@ export function createDashboard(actions) {
   const today = metricCard({ label: 'Vencem Hoje', tone: 'amber', id: 'today' });
   const paid = metricCard({ label: 'Recebido (Mês)', tone: 'emerald', id: 'paid' });
 
+  const planBanner = h('div', { id: 'planBanner', class: 'hidden' });
   const alertBar = h('div', { id: 'alertBar', class: 'hidden' });
   const search = h('input', {
     id: 'searchInput',
@@ -66,6 +67,7 @@ export function createDashboard(actions) {
   const el = h(
     'section',
     { id: 'panel-cobrancas', class: 'flex flex-col flex-1' },
+    planBanner,
     alertBar,
     h('div', { class: 'grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6' }, overdue.el, today.el, paid.el),
     h(
@@ -90,6 +92,89 @@ export function createDashboard(actions) {
           : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
       b.setAttribute('aria-pressed', String(f === filter));
     }
+  }
+
+  function renderPlanBanner(planDetails, onUpgrade) {
+    clear(planBanner);
+    if (!planDetails || planDetails.isPro) {
+      planBanner.classList.add('hidden');
+      return;
+    }
+
+    if (planDetails.isExpired) {
+      planBanner.className =
+        'fade-up mb-5 bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/40 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl';
+      append(
+        planBanner,
+        h(
+          'div',
+          { class: 'space-y-1' },
+          h(
+            'div',
+            { class: 'flex items-center gap-2' },
+            h(
+              'span',
+              { class: 'text-[10px] uppercase font-mono tracking-wider font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30' },
+              'DEGUSTAÇÃO DE 5 DIAS EXPIRADA'
+            )
+          ),
+          h('h3', { class: 'text-base font-bold text-white' }, 'Controle de Mensalidades Pausado'),
+          h(
+            'p',
+            { class: 'text-xs text-slate-300 max-w-xl' },
+            'Seu período de teste de 5 dias foi concluído. Seus clientes e histórico continuam salvos na nuvem. Para cadastrar novos clientes e disparar cobranças no WhatsApp, ative o Plano PRO por R$ 29,90/mês.'
+          )
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            class:
+              'flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 text-slate-950 transition cursor-pointer shadow-lg shadow-emerald-500/20 shrink-0 self-start md:self-auto',
+            onclick: onUpgrade,
+          },
+          icon('fa-solid fa-bolt text-xs'),
+          h('span', {}, 'Ativar Plano PRO (R$ 29,90)')
+        )
+      );
+      planBanner.classList.remove('hidden');
+      return;
+    }
+
+    if (planDetails.isTrial) {
+      planBanner.className =
+        'fade-up mb-5 bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
+      append(
+        planBanner,
+        h(
+          'div',
+          { class: 'flex items-center gap-3' },
+          h('div', { class: 'w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0' }, icon('fa-regular fa-clock')),
+          h(
+            'div',
+            { class: 'text-xs text-slate-300' },
+            h('span', { class: 'font-bold text-amber-400' }, 'Degustação Gratuita: '),
+            `restam `,
+            h('strong', { class: 'text-white font-mono' }, `${planDetails.daysRemaining} ${planDetails.daysRemaining === 1 ? 'dia' : 'dias'}`),
+            ` de teste. Garanta a continuidade das suas cobranças ativando o Plano PRO por R$ 29,90/mês.`
+          )
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            class: 'flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition shrink-0 cursor-pointer self-start sm:self-auto',
+            onclick: onUpgrade,
+          },
+          icon('fa-solid fa-bolt text-xs'),
+          h('span', {}, 'Assinar PRO')
+        )
+      );
+      planBanner.classList.remove('hidden');
+      return;
+    }
+
+    planBanner.classList.add('hidden');
   }
 
   function renderAlert(summary) {
@@ -186,6 +271,7 @@ export function createDashboard(actions) {
       overdue.set(summary.overdue);
       today.set(summary.today);
       paid.set(summary.paid);
+      renderPlanBanner(data.planDetails, data.onUpgrade);
       renderAlert(summary);
       renderList();
       return summary;
